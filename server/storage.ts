@@ -33,6 +33,7 @@ export interface IStorage {
   createFee(fee: Omit<Fee, "id">): Promise<Fee>;
   updateFeeStatus(feeId: number, status: string, paymentDate?: Date): Promise<Fee>;
   getStudentsByClass(classNum: number, section: string): Promise<User[]>;
+  getAllStudents(): Promise<User[]>; // Added getAllStudents method
   sessionStore: session.Store;
 }
 
@@ -119,13 +120,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getStudentsByClass(classNum: number, section: string): Promise<User[]> {
-    console.log('AAAAA', classNum, section)
     const client = await pool.connect();
     try {
       const result = await client.query(
         "SELECT * FROM users WHERE role = 'STUDENT' AND class = $1 AND section = $2",
         [classNum, section]
       );
+      return result.rows;
+    } finally {
+      client.release();
+    }
+  }
+
+  async getAllStudents(): Promise<User[]> {
+    const client = await pool.connect();
+    try {
+      const result = await client.query("SELECT * FROM users WHERE role = 'STUDENT'");
       return result.rows;
     } finally {
       client.release();
