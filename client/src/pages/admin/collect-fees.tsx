@@ -22,6 +22,7 @@ export default function CollectFees() {
   const [feeAmount, setFeeAmount] = useState<string>("");
   const { toast } = useToast();
 
+  // Always call useQuery to maintain consistent hook order
   const { data: students, isLoading } = useQuery<User[]>({
     queryKey: ["/api/admin/students", selectedClass, selectedSection],
     queryFn: getQueryFn({ on401: "throw" }),
@@ -132,7 +133,6 @@ export default function CollectFees() {
           <Button
             variant="outline"
             onClick={() => {
-              console.log('dbeudeubd');
               setSelectedSection(null);
               setFeeAmount("");
             }}
