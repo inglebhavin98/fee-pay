@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2, Download, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { User } from "@shared/schema";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient, getQueryFn } from "@/lib/queryClient";
 
 const CLASSES = Array.from({ length: 10 }, (_, i) => i + 1);
 const SECTIONS = ["A", "B", "C"];

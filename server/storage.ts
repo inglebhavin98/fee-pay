@@ -1,8 +1,11 @@
-import { InsertUser, User, Fee, type InsertFee } from "@shared/schema";
+import { users, fees, type User, type InsertUser, type Fee, type InsertFee } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import session from "express-session";
-import createMemoryStore from "memorystore";
+import connectPg from "connect-pg-simple";
+import { pool } from "./db";
 
-const MemoryStore = createMemoryStore(session);
+const PostgresSessionStore = connectPg(session);
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -15,86 +18,37 @@ export interface IStorage {
   sessionStore: session.Store;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private fees: Map<number, Fee>;
-  private currentUserId: number;
-  private currentFeeId: number;
+export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
 
   constructor() {
-    this.users = new Map();
-    this.fees = new Map();
-    this.currentUserId = 1;
-    this.currentFeeId = 1;
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000,
-    });
-
-    // Seed initial users
-    this.seedUsers();
-  }
-
-  private seedUsers() {
-    // Create admin
-    this.createUser({
-      username: "admin@somemail.com",
-      password: "12345",
-      role: "ADMIN",
-      name: "Admin User",
-      class: null,
-      section: null,
-    });
-
-    // Create student
-    const student = this.createUser({
-      username: "schoolkid@somemail.com",
-      password: "12345",
-      role: "STUDENT",
-      name: "John Doe",
-      class: 5,
-      section: "A",
-    });
-
-    // Create fee for student
-    this.createFee({
-      studentId: student.id,
-      type: "Annual Fee",
-      amount: "5000",
-      dueDate: new Date("2024-03-31"),
-      status: "UNPAID",
-      paymentDate: null,
-      receiptUrl: null,
+    this.sessionStore = new PostgresSessionStore({
+      pool,
+      createTableIfMissing: true,
     });
   }
 
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
 
   async getFeesByStudent(studentId: number): Promise<Fee[]> {
-    return Array.from(this.fees.values()).filter(
-      (fee) => fee.studentId === studentId,
-    );
+    return db.select().from(fees).where(eq(fees.studentId, studentId));
   }
 
   async createFee(fee: InsertFee): Promise<Fee> {
-    const id = this.currentFeeId++;
-    const newFee = { ...fee, id };
-    this.fees.set(id, newFee);
+    const [newFee] = await db.insert(fees).values(fee).returning();
     return newFee;
   }
 
@@ -103,26 +57,27 @@ export class MemStorage implements IStorage {
     status: string,
     paymentDate?: Date,
   ): Promise<Fee> {
-    const fee = this.fees.get(feeId);
-    if (!fee) throw new Error("Fee not found");
+    const [updatedFee] = await db
+      .update(fees)
+      .set({ status, paymentDate })
+      .where(eq(fees.id, feeId))
+      .returning();
 
-    const updatedFee = {
-      ...fee,
-      status,
-      paymentDate: paymentDate || null,
-    };
-    this.fees.set(feeId, updatedFee);
+    if (!updatedFee) {
+      throw new Error("Fee not found");
+    }
+
     return updatedFee;
   }
 
   async getStudentsByClass(classNum: number, section: string): Promise<User[]> {
-    return Array.from(this.users.values()).filter(
-      (user) =>
-        user.role === "STUDENT" &&
-        user.class === classNum &&
-        user.section === section,
-    );
+    return db
+      .select()
+      .from(users)
+      .where(eq(users.class, classNum))
+      .where(eq(users.section, section))
+      .where(eq(users.role, "STUDENT"));
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
