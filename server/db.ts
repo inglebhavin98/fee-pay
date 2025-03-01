@@ -51,6 +51,31 @@ export async function initializeDatabase() {
     `);
     console.log('Fees table created successfully');
 
+    // Insert test data if not exists
+    const adminExists = await pool.query("SELECT * FROM users WHERE username = $1", ['admin@somemail.com']);
+    if (adminExists.rows.length === 0) {
+      console.log('Creating test admin user...');
+      await pool.query(
+        "INSERT INTO users (username, password, role, name) VALUES ($1, $2, $3, $4)",
+        ['admin@somemail.com', '12345', 'ADMIN', 'Admin User']
+      );
+    }
+
+    const studentExists = await pool.query("SELECT * FROM users WHERE username = $1", ['schoolkid@somemail.com']);
+    if (studentExists.rows.length === 0) {
+      console.log('Creating test student user...');
+      const studentResult = await pool.query(
+        "INSERT INTO users (username, password, role, name, class, section) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+        ['schoolkid@somemail.com', '12345', 'STUDENT', 'John Doe', 5, 'A']
+      );
+
+      console.log('Creating test fee entry...');
+      await pool.query(
+        "INSERT INTO fees (student_id, type, amount, due_date, status) VALUES ($1, $2, $3, $4, $5)",
+        [studentResult.rows[0].id, 'Annual Fee', 5000, new Date('2024-03-31'), 'UNPAID']
+      );
+    }
+
   } catch (error) {
     console.error('Database initialization failed:', error);
     throw error;
