@@ -132,6 +132,7 @@ export default function CollectFees() {
           <Button
             variant="outline"
             onClick={() => {
+              console.log('dbeudeubd');
               setSelectedSection(null);
               setFeeAmount("");
             }}
