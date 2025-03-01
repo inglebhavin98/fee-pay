@@ -1,0 +1,127 @@
+School Fee Collection System - POC Development Requirements
+Tech Stack
+
+Frontend: React
+Backend: Node.js
+Database: PostgreSQL
+
+User Types
+
+Admin
+Students
+
+Authentication System
+
+Implement secure login functionality
+Predefined credentials:
+
+Student: schoolkid@somemail.com / 12345
+Admin: admin@somemail.com / 12345
+
+
+
+Student Portal Features
+Login Page
+
+Email and password fields
+Form validation
+Error handling for invalid credentials
+
+Student Dashboard
+
+Display student's pending fee information:
+
+Fee type (Annual fee)
+Payment amount
+Due date
+Payment status (Paid/Unpaid)
+
+
+
+Payment Flow
+
+"Pay Fee" button for unpaid fees
+Create a mock payment gateway page:
+
+Include simulated success/failure scenarios
+No actual payment processing required
+
+
+After payment:
+
+Update payment status in database
+Redirect to dashboard
+Transform "Pay Fee" button to "Download Receipt" button
+
+
+
+Receipt Generation
+
+Implement PDF generation for paid fees
+Download functionality for receipts
+
+Admin Portal Features
+Login Page
+
+Similar to student login page with admin credentials
+
+Admin Dashboard
+
+Navigation menu with two main sections:
+
+Collect Fees
+Fee Reports
+
+
+
+Collect Fees Section
+
+Display list of classes (1-10)
+"Download Fee Status" button for each class
+Class selection leads to sections view (A, B, C)
+"Download Section Data" button for each section
+Section selection shows:
+
+Fee amount setting field
+Student list with:
+
+Name
+Email
+Payment status (Paid/Unpaid/Issue)
+Individual "Send Payment Reminder" button
+
+
+"Send Reminders to All Unpaid" button
+"Download Receipts for Paid Students" button
+
+
+
+Fee Reports Section
+
+Basic reporting functionality (can be placeholder for POC)
+
+Data Models
+Students
+
+ID, Name, Email, Class, Section
+
+Fees
+
+ID, StudentID, FeeType, Amount, DueDate, Status, PaymentDate, ReceiptURL
+
+API Endpoints
+
+Authentication endpoints
+Student fee information endpoints
+Payment processing endpoints
+Admin management endpoints
+
+Development Requirements
+
+Focus on functionality over design
+Include seed data for testing
+Implement proper error handling
+Include basic form validation
+Design responsive UI
+
+This is intended as a Proof of Concept, with placeholder functionality for payment gateway integration.
