@@ -40,6 +40,7 @@ app.use((req, res, next) => {
 (async () => {
   try {
     // Initialize database first
+    console.log('Starting database initialization...');
     await initializeDatabase();
     console.log('Database initialized successfully');
 
@@ -65,7 +66,7 @@ app.use((req, res, next) => {
       host: "0.0.0.0",
       reusePort: true,
     }, () => {
-      log(`serving on port ${port}`);
+      log(`Server is listening on port ${port}`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
