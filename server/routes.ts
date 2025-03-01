@@ -8,15 +8,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Student routes
   app.get("/api/student/fees", async (req, res) => {
-    if (!req.isAuthenticated() || req.user.role !== "STUDENT") {
+    if (!req.isAuthenticated() || req.session.user.role !== "STUDENT") {
       return res.sendStatus(401);
     }
-    const fees = await storage.getFeesByStudent(req.user.id);
+    const fees = await storage.getFeesByStudent(req.session.user.id);
     res.json(fees);
   });
 
   app.post("/api/student/fees/:feeId/pay", async (req, res) => {
-    if (!req.isAuthenticated() || req.user.role !== "STUDENT") {
+    if (!req.isAuthenticated() || req.session.user.role !== "STUDENT") {
       return res.sendStatus(401);
     }
 
@@ -30,7 +30,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Admin routes
   app.get("/api/admin/students/:class/:section", async (req, res) => {
-    if (!req.isAuthenticated() || req.user.role !== "ADMIN") {
+    if (!req.isAuthenticated() || req.session.user.role !== "ADMIN") {
       return res.sendStatus(401);
     }
 
@@ -42,7 +42,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/admin/fees", async (req, res) => {
-    if (!req.isAuthenticated() || req.user.role !== "ADMIN") {
+    if (!req.isAuthenticated() || req.session.user.role !== "ADMIN") {
       return res.sendStatus(401);
     }
 

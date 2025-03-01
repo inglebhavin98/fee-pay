@@ -1,39 +1,45 @@
-import { pgTable, text, serial, integer, boolean, timestamp, decimal } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  role: text("role").notNull(),
-  name: text("name").notNull(),
-  class: integer("class"),
-  section: text("section"),
+// User validation schema
+export const insertUserSchema = z.object({
+  username: z.string().email("Invalid email address"),
+  password: z.string().min(5, "Password must be at least 5 characters"),
+  role: z.enum(["ADMIN", "STUDENT"]),
+  name: z.string().min(1, "Name is required"),
+  class: z.number().optional(),
+  section: z.string().optional(),
 });
 
-export const fees = pgTable("fees", {
-  id: serial("id").primaryKey(),
-  studentId: integer("student_id").notNull(),
-  type: text("type").notNull(),
-  amount: decimal("amount").notNull(),
-  dueDate: timestamp("due_date").notNull(),
-  status: text("status").notNull(), // "PAID" | "UNPAID" | "ISSUE"
-  paymentDate: timestamp("payment_date"),
-  receiptUrl: text("receipt_url"),
+// Fee validation schema
+export const insertFeeSchema = z.object({
+  student_id: z.number(),
+  type: z.string(),
+  amount: z.string(),
+  due_date: z.date(),
+  status: z.string(),
+  payment_date: z.date().optional(),
+  receipt_url: z.string().optional(),
 });
-
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-  role: true,
-  name: true,
-  class: true,
-  section: true,
-});
-
-export const insertFeeSchema = createInsertSchema(fees);
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
-export type Fee = typeof fees.$inferSelect;
+
+export type User = {
+  id: number;
+  username: string;
+  password: string;
+  role: string;
+  name: string;
+  class: number | null;
+  section: string | null;
+};
+
+export type Fee = {
+  id: number;
+  studentId: number;
+  type: string;
+  amount: number;
+  dueDate: Date;
+  status: string;
+  paymentDate: Date | null;
+  receiptUrl: string | null;
+};
