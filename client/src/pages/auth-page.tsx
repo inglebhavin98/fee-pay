@@ -43,25 +43,30 @@ export default function AuthPage() {
   });
 
   const onLoginSubmit = async (data: LoginFormData) => {
-    await loginMutation.mutateAsync({
+    const result = await loginMutation.mutateAsync({
       username: data.email,
       password: data.password,
     });
 
     if (!loginMutation.error) {
-      navigate("/dashboard");
+      // Redirect based on user role
+      navigate(result.role === "ADMIN" ? "/admin" : "/");
     }
   };
 
   const onRegisterSubmit = async (data: RegisterFormData) => {
-    await registerMutation.mutateAsync({
+    const result = await registerMutation.mutateAsync({
       name: data.name,
       username: data.email,
       password: data.password,
+      role: "STUDENT", // Default role for new registrations
+      class: 1, // Default class
+      section: "A", // Default section
     });
 
     if (!registerMutation.error) {
-      navigate("/dashboard");
+      // Students are redirected to the student dashboard
+      navigate("/");
     }
   };
 
