@@ -132,15 +132,25 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getAllStudents(classNum: number, section: string): Promise<User[]> {
+  async getAllStudents(classNum?: number, section?: string): Promise<User[]> {
     const client = await pool.connect();
     try {
-      const result = await client.query(`
+      // If classNum and section are provided, filter by them, otherwise get all students
+      let query = `
         SELECT users.*, fees.*
         FROM users
-        JOIN fees ON users.id = fees.student_id
-        WHERE users.role = 'STUDENT' AND users.class = $classNum AND users.section = $section
-      `);
+        LEFT JOIN fees ON users.id = fees.student_id
+        WHERE users.role = 'STUDENT'
+      `;
+      
+      const params: any[] = [];
+      
+      if (classNum !== undefined && section !== undefined) {
+        query += ` AND users.class = $1 AND users.section = $2`;
+        params.push(classNum, section);
+      }
+      
+      const result = await client.query(query, params);
       console.log('---', result);
       return result.rows;
     } finally {
