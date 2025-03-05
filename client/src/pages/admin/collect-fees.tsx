@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,26 +11,32 @@ import { apiRequest, queryClient, getQueryFn } from "@/lib/queryClient";
 const CLASSES = Array.from({ length: 10 }, (_, i) => i + 1);
 const SECTIONS = ["A", "B", "C"];
 
-type StudentWithFeeStatus = User & { status: 'PAID' | 'UNPAID' };
-
 export default function CollectFees() {
   const [selectedClass, setSelectedClass] = useState<number | null>(null);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [feeAmount, setFeeAmount] = useState<string>("");
   const { toast } = useToast();
 
-  const { data: students, isLoading } = useQuery<StudentWithFeeStatus[]>({
+  // Always call useQuery to maintain consistent hook order
+  const { data: students, isLoading } = useQuery<[]>({
     queryKey: ["/api/admin/students", selectedClass, selectedSection],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: selectedClass !== null && selectedSection !== null,
   });
+
+  // console.log('<><>',students);
+  useEffect(() => {
+    if (students) {
+      console.log("Students --->:", students);
+    }
+  }, [students]);
 
   const createFeeMutation = useMutation({
     mutationFn: async (studentId: number) => {
       const res = await apiRequest("POST", "/api/admin/fees", {
         studentId,
         type: "Annual Fee",
-        amount: parseFloat(feeAmount),
+        amount: feeAmount,
         dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
         status: "UNPAID",
       });
@@ -151,7 +157,7 @@ export default function CollectFees() {
             disabled={!feeAmount || !students?.length}
             onClick={() =>
               students?.forEach((student) =>
-                createFeeMutation.mutate(student.id)
+                createFeeMutation.mutate(student.id),
               )
             }
           >
@@ -177,29 +183,38 @@ export default function CollectFees() {
                 </tr>
               </thead>
               <tbody>
-                {students?.map((student) => (
-                  <tr key={student.id} className="border-b">
-                    <td className="p-4">{student.name}</td>
-                    <td className="p-4">{student.username}</td>
-                    <td className="p-4">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          student.status === "PAID"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-yellow-100 text-yellow-800"
-                        }`}
-                      >
-                        {student.status}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <Button size="sm" variant="outline">
-                        <Send className="mr-2 h-4 w-4" />
-                        Send Reminder
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
+                {students?.map((student) => {
+                  // console.log("here-->", student.fees);
+                  return (
+                    <tr key={student.id} className="border-b">
+                      <td className="p-4">{student.name}</td>
+                      <td className="p-4">{student.username}</td>
+                      <td className="p-4">
+                        <span
+                          className="px-2 py-1 rounded-full text-xs font-medium"
+                          style={{
+                            backgroundColor:
+                              student.status == "PAID"
+                                ? "green-100"
+                                : "yellow-100",
+                            color:
+                              student.status == "PAID"
+                                ? "green-800"
+                                : "yellow-800",
+                          }}
+                        >
+                          {student.status == "PAID" ? "Paid" : "Pending"}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <Button size="sm" variant="outline">
+                          <Send className="mr-2 h-4 w-4" />
+                          Send Reminder
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </CardContent>

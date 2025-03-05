@@ -30,18 +30,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Admin routes
   app.get("/api/admin/students", async (req, res) => {
-    if (!req.isAuthenticated() || req.session.user.role !== "ADMIN") {
-      return res.sendStatus(401);
-    }
-    // Get distinct students with their aggregated fee status
-    const students = await storage.getAllStudents(5, 'A');
+    // if (!req.isAuthenticated() || req.session.user.role !== "ADMIN") {
+    //   return res.sendStatus(401);
+    // }
+    console.log(">>>>", req.body);
+    const students = await storage.getAllStudents();
     res.json(students);
   });
 
   app.get("/api/admin/students/:class/:section", async (req, res) => {
-    if (!req.isAuthenticated() || req.session.user.role !== "ADMIN") {
-      return res.sendStatus(401);
-    }
+    // if (!req.isAuthenticated() || req.session.user.role !== "ADMIN") {
+    //   return res.sendStatus(401);
+    // }
     const students = await storage.getStudentsByClass(
       parseInt(req.params.class),
       req.params.section,

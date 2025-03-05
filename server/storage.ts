@@ -31,7 +31,11 @@ export interface IStorage {
   createUser(user: Omit<User, "id">): Promise<User>;
   getFeesByStudent(studentId: number): Promise<Fee[]>;
   createFee(fee: Omit<Fee, "id">): Promise<Fee>;
-  updateFeeStatus(feeId: number, status: string, paymentDate?: Date): Promise<Fee>;
+  updateFeeStatus(
+    feeId: number,
+    status: string,
+    paymentDate?: Date,
+  ): Promise<Fee>;
   getStudentsByClass(classNum: number, section: string): Promise<User[]>;
   getAllStudents(): Promise<User[]>; // Added getAllStudents method
   sessionStore: session.Store;
@@ -50,7 +54,9 @@ export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
     const client = await pool.connect();
     try {
-      const result = await client.query("SELECT * FROM users WHERE id = $1", [id]);
+      const result = await client.query("SELECT * FROM users WHERE id = $1", [
+        id,
+      ]);
       return result.rows[0];
     } finally {
       client.release();
@@ -60,7 +66,10 @@ export class DatabaseStorage implements IStorage {
   async getUserByUsername(username: string): Promise<User | undefined> {
     const client = await pool.connect();
     try {
-      const result = await client.query("SELECT * FROM users WHERE username = $1", [username]);
+      const result = await client.query(
+        "SELECT * FROM users WHERE username = $1",
+        [username],
+      );
       return result.rows[0];
     } finally {
       client.release();
@@ -72,7 +81,14 @@ export class DatabaseStorage implements IStorage {
     try {
       const result = await client.query(
         "INSERT INTO users (username, password, role, name, class, section) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-        [user.username, user.password, user.role, user.name, user.class, user.section]
+        [
+          user.username,
+          user.password,
+          user.role,
+          user.name,
+          user.class,
+          user.section,
+        ],
       );
       return result.rows[0];
     } finally {
@@ -83,7 +99,10 @@ export class DatabaseStorage implements IStorage {
   async getFeesByStudent(studentId: number): Promise<Fee[]> {
     const client = await pool.connect();
     try {
-      const result = await client.query("SELECT * FROM fees WHERE student_id = $1", [studentId]);
+      const result = await client.query(
+        "SELECT * FROM fees WHERE student_id = $1",
+        [studentId],
+      );
       return result.rows;
     } finally {
       client.release();
@@ -95,7 +114,15 @@ export class DatabaseStorage implements IStorage {
     try {
       const result = await client.query(
         "INSERT INTO fees (student_id, type, amount, due_date, status, payment_date, receipt_url) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
-        [fee.student_id, fee.type, fee.amount, fee.due_date, fee.status, fee.payment_date, fee.receipt_url]
+        [
+          fee.student_id,
+          fee.type,
+          fee.amount,
+          fee.due_date,
+          fee.status,
+          fee.payment_date,
+          fee.receipt_url,
+        ],
       );
       return result.rows[0];
     } finally {
@@ -103,12 +130,16 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateFeeStatus(feeId: number, status: string, paymentDate?: Date): Promise<Fee> {
+  async updateFeeStatus(
+    feeId: number,
+    status: string,
+    paymentDate?: Date,
+  ): Promise<Fee> {
     const client = await pool.connect();
     try {
       const result = await client.query(
         "UPDATE fees SET status = $1, payment_date = $2 WHERE id = $3 RETURNING *",
-        [status, paymentDate, feeId]
+        [status, paymentDate, feeId],
       );
       if (!result.rows[0]) {
         throw new Error("Fee not found");
@@ -124,7 +155,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const result = await client.query(
         "SELECT * FROM users WHERE role = 'STUDENT' AND class = $1 AND section = $2",
-        [classNum, section]
+        [classNum, section],
       );
       return result.rows;
     } finally {
@@ -142,16 +173,16 @@ export class DatabaseStorage implements IStorage {
         LEFT JOIN fees ON users.id = fees.student_id
         WHERE users.role = 'STUDENT'
       `;
-      
+
       const params: any[] = [];
-      
+
       if (classNum !== undefined && section !== undefined) {
         query += ` AND users.class = $1 AND users.section = $2`;
         params.push(classNum, section);
       }
-      
+
       const result = await client.query(query, params);
-      console.log('---', result);
+      console.log("---", query, "<><>", result);
       return result.rows;
     } finally {
       client.release();
