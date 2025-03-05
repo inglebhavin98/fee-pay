@@ -50,7 +50,7 @@ export default function AuthPage() {
 
     if (!loginMutation.error) {
       // Redirect based on user role
-      navigate(result.role === "ADMIN" ? "/admin" : "/");
+      navigate(result.role === "ADMIN" ? "/admin" : "/admin");
     }
   };
 
@@ -125,7 +125,9 @@ export default function AuthPage() {
           <button
             type="submit"
             className="w-full py-2 px-4 bg-primary text-white rounded"
-            disabled={loginForm.formState.isSubmitting || loginMutation.isPending}
+            disabled={
+              loginForm.formState.isSubmitting || loginMutation.isPending
+            }
           >
             {loginMutation.isPending ? "Logging in..." : "Login"}
           </button>
@@ -189,7 +191,9 @@ export default function AuthPage() {
           <button
             type="submit"
             className="w-full py-2 px-4 bg-primary text-white rounded"
-            disabled={registerForm.formState.isSubmitting || registerMutation.isPending}
+            disabled={
+              registerForm.formState.isSubmitting || registerMutation.isPending
+            }
           >
             {registerMutation.isPending ? "Registering..." : "Register"}
           </button>

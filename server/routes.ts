@@ -30,11 +30,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Admin routes
   app.get("/api/admin/students", async (req, res) => {
+    const { classNum, section } = req.query; // Properly extract query parameters
+    console.log("~~~~", classNum, section);
     // if (!req.isAuthenticated() || req.session.user.role !== "ADMIN") {
     //   return res.sendStatus(401);
     // }
-    console.log(">>>>", req.body);
-    const students = await storage.getAllStudents();
+    // const classNum = req.query; // Get classNum from query string
+    // const section = req.query.section;
+    // console.log("~~~~", classNum, section);
+
+    // console.log(">>>>", req.body);
+    const students = await storage.getAllStudents(
+      classNum,
+      section ? section.toString() : undefined,
+    );
     res.json(students);
   });
 

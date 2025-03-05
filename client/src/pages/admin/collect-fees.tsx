@@ -19,7 +19,7 @@ export default function CollectFees() {
 
   // Always call useQuery to maintain consistent hook order
   const { data: students, isLoading } = useQuery<[]>({
-    queryKey: ["/api/admin/students", selectedClass, selectedSection],
+    queryKey: [`/api/admin/students?classNum=${selectedClass}&section=${selectedSection}`, selectedClass, selectedSection],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: selectedClass !== null && selectedSection !== null,
   });
@@ -27,7 +27,8 @@ export default function CollectFees() {
   // console.log('<><>',students);
   useEffect(() => {
     if (students) {
-      console.log("Students --->:", students);
+      console.log("changed");
+      console.log(students);
     }
   }, [students]);
 
