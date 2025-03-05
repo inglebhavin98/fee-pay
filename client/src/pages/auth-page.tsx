@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useLocation, useRoute, useNavigate } from "wouter";
 import { z } from "zod";
@@ -10,13 +9,13 @@ import { useAuth } from "@/hooks/use-auth";
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(6),
+  password: z.string().min(1),
 });
 
 const registerSchema = z.object({
   name: z.string().min(3),
   email: z.string().email(),
-  password: z.string().min(6),
+  password: z.string().min(1),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -28,7 +27,7 @@ export default function AuthPage() {
   const { toast } = useToast();
   const { setUser } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
-  
+
   // Use separate form instances for login and register to avoid hook ordering issues
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -106,7 +105,10 @@ export default function AuthPage() {
       </div>
 
       {isLogin ? (
-        <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+        <form
+          onSubmit={loginForm.handleSubmit(onLoginSubmit)}
+          className="space-y-4"
+        >
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium">
               Email
@@ -150,7 +152,10 @@ export default function AuthPage() {
           </button>
         </form>
       ) : (
-        <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
+        <form
+          onSubmit={registerForm.handleSubmit(onRegisterSubmit)}
+          className="space-y-4"
+        >
           <div className="space-y-2">
             <label htmlFor="name" className="text-sm font-medium">
               Name
@@ -207,7 +212,9 @@ export default function AuthPage() {
             className="w-full py-2 px-4 bg-primary text-white rounded"
             disabled={registerForm.formState.isSubmitting}
           >
-            {registerForm.formState.isSubmitting ? "Registering..." : "Register"}
+            {registerForm.formState.isSubmitting
+              ? "Registering..."
+              : "Register"}
           </button>
         </form>
       )}

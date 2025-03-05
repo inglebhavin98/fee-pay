@@ -3,7 +3,7 @@ import { z } from "zod";
 // User validation schema
 export const insertUserSchema = z.object({
   username: z.string().email("Invalid email address"),
-  password: z.string().min(5, "Password must be at least 5 characters"),
+  password: z.string().min(1, "Password must be at least 5 characters"),
   role: z.enum(["ADMIN", "STUDENT"]),
   name: z.string().min(1, "Name is required"),
   class: z.number().optional(),
