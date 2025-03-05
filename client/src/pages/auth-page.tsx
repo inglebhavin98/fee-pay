@@ -1,10 +1,8 @@
 import React, { useState } from "react";
-import { useLocation, useRoute, useNavigate } from "wouter";
+import { useLocation } from "wouter";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 
 const loginSchema = z.object({
@@ -22,10 +20,8 @@ type LoginFormData = z.infer<typeof loginSchema>;
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
-  // Always declare all hooks at the top level
   const [, navigate] = useLocation();
-  const { toast } = useToast();
-  const { setUser } = useAuth();
+  const { loginMutation, registerMutation } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
 
   // Use separate form instances for login and register to avoid hook ordering issues
@@ -47,47 +43,25 @@ export default function AuthPage() {
   });
 
   const onLoginSubmit = async (data: LoginFormData) => {
-    try {
-      const res = await apiRequest("POST", "/api/login", {
-        username: data.email,
-        password: data.password,
-      });
-      const user = await res.json();
-      setUser(user);
-      toast({
-        title: "Login successful",
-        description: "Welcome back!",
-      });
+    await loginMutation.mutateAsync({
+      username: data.email,
+      password: data.password,
+    });
+
+    if (!loginMutation.error) {
       navigate("/dashboard");
-    } catch (error) {
-      toast({
-        title: "Login failed",
-        description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
-      });
     }
   };
 
   const onRegisterSubmit = async (data: RegisterFormData) => {
-    try {
-      const res = await apiRequest("POST", "/api/register", {
-        name: data.name,
-        username: data.email,
-        password: data.password,
-      });
-      const user = await res.json();
-      setUser(user);
-      toast({
-        title: "Registration successful",
-        description: "Welcome to the system!",
-      });
+    await registerMutation.mutateAsync({
+      name: data.name,
+      username: data.email,
+      password: data.password,
+    });
+
+    if (!registerMutation.error) {
       navigate("/dashboard");
-    } catch (error) {
-      toast({
-        title: "Registration failed",
-        description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
-      });
     }
   };
 
@@ -146,9 +120,9 @@ export default function AuthPage() {
           <button
             type="submit"
             className="w-full py-2 px-4 bg-primary text-white rounded"
-            disabled={loginForm.formState.isSubmitting}
+            disabled={loginForm.formState.isSubmitting || loginMutation.isPending}
           >
-            {loginForm.formState.isSubmitting ? "Logging in..." : "Login"}
+            {loginMutation.isPending ? "Logging in..." : "Login"}
           </button>
         </form>
       ) : (
@@ -210,11 +184,9 @@ export default function AuthPage() {
           <button
             type="submit"
             className="w-full py-2 px-4 bg-primary text-white rounded"
-            disabled={registerForm.formState.isSubmitting}
+            disabled={registerForm.formState.isSubmitting || registerMutation.isPending}
           >
-            {registerForm.formState.isSubmitting
-              ? "Registering..."
-              : "Register"}
+            {registerMutation.isPending ? "Registering..." : "Register"}
           </button>
         </form>
       )}
