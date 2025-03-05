@@ -1,12 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Loader2, Download, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -23,7 +18,7 @@ export default function CollectFees() {
   const { toast } = useToast();
 
   // Always call useQuery to maintain consistent hook order
-  const { data: students, isLoading } = useQuery<User[]>({
+  const { data: students, isLoading } = useQuery<[]>({
     queryKey: ["/api/admin/students", selectedClass, selectedSection],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: selectedClass !== null && selectedSection !== null,
@@ -155,7 +150,7 @@ export default function CollectFees() {
             disabled={!feeAmount || !students?.length}
             onClick={() =>
               students?.forEach((student) =>
-                createFeeMutation.mutate(student.id)
+                createFeeMutation.mutate(student.id),
               )
             }
           >
@@ -181,23 +176,38 @@ export default function CollectFees() {
                 </tr>
               </thead>
               <tbody>
-                {students?.map((student) => (
-                  <tr key={student.id} className="border-b">
-                    <td className="p-4">{student.name}</td>
-                    <td className="p-4">{student.username}</td>
-                    <td className="p-4">
-                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                        Pending
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <Button size="sm" variant="outline">
-                        <Send className="mr-2 h-4 w-4" />
-                        Send Reminder
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
+                {students?.map((student) => {
+                  console.log("here-->", student.fees);
+                  return (
+                    <tr key={student.id} className="border-b">
+                      <td className="p-4">{student.name}</td>
+                      <td className="p-4">{student.username}</td>
+                      <td className="p-4">
+                        <span
+                          className="px-2 py-1 rounded-full text-xs font-medium"
+                          style={{
+                            backgroundColor: student.status == "PAID"
+                              ? "green-100"
+                              : "yellow-100",
+                            color: student.status == "PAID"
+                              ? "green-800"
+                              : "yellow-800",
+                          }}
+                        >
+                          {student.status == "PAID"
+                            ? "Paid"
+                            : "Pending"}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <Button size="sm" variant="outline">
+                          <Send className="mr-2 h-4 w-4" />
+                          Send Reminder
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </CardContent>

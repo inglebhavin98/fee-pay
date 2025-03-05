@@ -135,7 +135,12 @@ export class DatabaseStorage implements IStorage {
   async getAllStudents(): Promise<User[]> {
     const client = await pool.connect();
     try {
-      const result = await client.query("SELECT * FROM users WHERE role = 'STUDENT'");
+      const result = await client.query(`
+        SELECT users.*, fees.*
+        FROM users
+        JOIN fees ON users.id = fees.student_id
+        WHERE users.role = 'STUDENT'
+      `);
       return result.rows;
     } finally {
       client.release();
